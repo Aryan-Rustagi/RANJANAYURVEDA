@@ -1,20 +1,32 @@
 
-FROM node:22-alpine
-
+FROM node:22-alpine AS server
 
 WORKDIR /app
 
-
 COPY server/package*.json ./
-
-
 RUN npm install
-
 
 COPY server/ .
 
-
 EXPOSE 5000
 
-
 CMD ["npm", "start"]
+
+
+FROM node:22-alpine AS client-build
+
+WORKDIR /app
+
+COPY client/RANJANAYURVEDA/package*.json ./
+RUN npm install
+
+COPY client/RANJANAYURVEDA/ .
+RUN npm run build
+
+FROM nginx:alpine AS client
+
+COPY --from=client-build /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

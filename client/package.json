@@ -1,0 +1,10 @@
+{
+  "name": "client-wrapper",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix RANJANAYURVEDA run dev",
+    "build": "npm --prefix RANJANAYURVEDA run build",
+    "preview": "npm --prefix RANJANAYURVEDA run preview"
+  }
+}

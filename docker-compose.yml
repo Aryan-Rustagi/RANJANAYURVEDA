@@ -1,18 +1,18 @@
 services:
   server:
     build:
-      context: ./server
+      context: .
       dockerfile: Dockerfile
+      target: server
     container_name: backend_server
     ports:
       - "5000:5000"
-    environment:
-      - PORT=5000
 
   client:
     build:
-      context: ./client/RANJANAYURVEDA
+      context: .
       dockerfile: Dockerfile
+      target: client
     container_name: frontend_client
     ports:
       - "3000:80"
