@@ -20,7 +20,7 @@ export default function Dashboard({ setActiveTab, user, onLogout }) {
     treatment: 'Slip Disc (कमर दर्द) Treatment',
     branch: user ? (user.preferredBranch || 'Kangra Centre') : 'Kangra Centre',
     appointmentDate: '',
-    timeSlot: '10:30 AM',
+    timeSlot: '09:00 AM',
     notes: ''
   });
   const [bookingLoading, setBookingLoading] = useState(false);
@@ -271,27 +271,6 @@ export default function Dashboard({ setActiveTab, user, onLogout }) {
         >
           <Calendar size={18} /> 3. My Appointments ({myAppointments.length})
         </button>
-
-        <button 
-          onClick={() => setActiveSubTab('treatment')}
-          style={{
-            padding: '12px 20px',
-            border: 'none',
-            background: 'none',
-            fontSize: '0.98rem',
-            fontWeight: '600',
-            fontFamily: 'var(--font-sans)',
-            color: activeSubTab === 'treatment' ? 'var(--color-maroon-primary)' : 'var(--color-text-muted)',
-            borderBottom: activeSubTab === 'treatment' ? '3px solid var(--color-maroon-primary)' : '3px solid transparent',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          <Sparkles size={18} /> 4. My Treatment & Panchakarma Plan
-        </button>
       </div>
 
       {/* TAB 1: PATIENT INFO & PROFILE */}
@@ -416,10 +395,24 @@ export default function Dashboard({ setActiveTab, user, onLogout }) {
                   value={bookingForm.timeSlot}
                   onChange={(e) => setBookingForm({ ...bookingForm, timeSlot: e.target.value })}
                 >
+                  <option value="09:00 AM">09:00 AM - Morning Slot</option>
+                  <option value="09:30 AM">09:30 AM - Morning Slot</option>
                   <option value="10:00 AM">10:00 AM - Morning Slot</option>
+                  <option value="10:30 AM">10:30 AM - Morning Slot</option>
+                  <option value="11:00 AM">11:00 AM - Morning Slot</option>
                   <option value="11:30 AM">11:30 AM - Morning Slot</option>
+                  <option value="12:00 PM">12:00 PM - Midday Slot</option>
+                  <option value="01:30 PM">01:30 PM - Afternoon Slot</option>
                   <option value="02:00 PM">02:00 PM - Afternoon Slot</option>
+                  <option value="02:30 PM">02:30 PM - Afternoon Slot</option>
+                  <option value="03:00 PM">03:00 PM - Afternoon Slot</option>
+                  <option value="03:30 PM">03:30 PM - Afternoon Slot</option>
+                  <option value="04:00 PM">04:00 PM - Evening Slot</option>
                   <option value="04:30 PM">04:30 PM - Evening Slot</option>
+                  <option value="05:00 PM">05:00 PM - Evening Slot</option>
+                  <option value="05:30 PM">05:30 PM - Evening Slot</option>
+                  <option value="06:00 PM">06:00 PM - Evening Slot</option>
+                  <option value="06:30 PM">06:30 PM - Late Evening Slot</option>
                 </select>
               </div>
             </div>
@@ -537,75 +530,6 @@ export default function Dashboard({ setActiveTab, user, onLogout }) {
                 </div>
               ))
             )}
-          </div>
-        </div>
-      )}
-
-      {/* TAB 4: MY TREATMENT & PANCHAKARMA PLAN */}
-      {activeSubTab === 'treatment' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* Panchakarma Progress */}
-          <div className="glass-card" style={{ padding: '26px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-              <div>
-                <h2 style={{ fontSize: '1.3rem', fontFamily: 'var(--font-serif)', color: 'var(--color-maroon-primary)', margin: 0 }}>
-                  Specialized Panchakarma Therapy Progress
-                </h2>
-                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', margin: '2px 0 0 0' }}>
-                  Kati Basti & Lumbar Spine Oil Retention Therapy
-                </p>
-              </div>
-              <span className="badge-gold" style={{ fontSize: '0.78rem' }}>Session 3 of 5 Completed (60%)</span>
-            </div>
-
-            <div style={{ height: '10px', background: '#e5dec9', borderRadius: '5px', overflow: 'hidden', marginBottom: '20px' }}>
-              <div style={{ width: '60%', height: '100%', background: 'linear-gradient(90deg, var(--color-maroon-primary) 0%, var(--color-gold-accent) 100%)' }}></div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
-              <div style={{ padding: '16px', background: '#faf7f2', borderRadius: '10px', border: '1px solid #eae3d9' }}>
-                <div style={{ fontSize: '0.8rem', color: '#137333', fontWeight: '700' }}>✓ COMPLETED</div>
-                <h4 style={{ fontSize: '0.98rem', margin: '4px 0', color: 'var(--color-maroon-primary)' }}>Nadi Sweda & Abhyanga</h4>
-                <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', margin: 0 }}>Warm herbal oil massage & nerve relaxation.</p>
-              </div>
-
-              <div style={{ padding: '16px', background: '#faf7f2', borderRadius: '10px', border: '1px solid #eae3d9' }}>
-                <div style={{ fontSize: '0.8rem', color: '#137333', fontWeight: '700' }}>✓ COMPLETED</div>
-                <h4 style={{ fontSize: '0.98rem', margin: '4px 0', color: 'var(--color-maroon-primary)' }}>Kati Basti - Phase 1</h4>
-                <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', margin: 0 }}>Oil retention over L4-L5 lumbar vertebrae.</p>
-              </div>
-
-              <div style={{ padding: '16px', background: '#fffdf7', borderRadius: '10px', border: '2px solid var(--color-gold-accent)' }}>
-                <div style={{ fontSize: '0.8rem', color: 'var(--color-maroon-primary)', fontWeight: '700' }}>SCHEDULED NEXT</div>
-                <h4 style={{ fontSize: '0.98rem', margin: '4px 0', color: 'var(--color-maroon-primary)' }}>Kati Basti & Patra Pinda Sweda</h4>
-                <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', margin: 0 }}>Deep herbal pouch heat therapy for joint stiffness.</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Prescribed Remedies */}
-          <div className="glass-card" style={{ padding: '26px' }}>
-            <h3 style={{ fontSize: '1.2rem', fontFamily: 'var(--font-serif)', color: 'var(--color-maroon-primary)', marginBottom: '16px' }}>
-              Prescribed Herbal Medicines
-            </h3>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '18px' }}>
-              <div style={{ border: '1px solid #eae3d9', borderRadius: '12px', padding: '18px', background: '#faf7f2' }}>
-                <h4 style={{ fontSize: '1.05rem', color: 'var(--color-maroon-primary)', margin: '0 0 6px 0', fontFamily: 'var(--font-serif)' }}>
-                  Yograj Guggulu Tablets
-                </h4>
-                <p style={{ fontSize: '0.88rem', margin: '0 0 6px 0' }}><strong>Dosage:</strong> 1 Tablet, Twice Daily (After Meals)</p>
-                <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', margin: 0 }}>🌱 Eases joint stiffness & reduces Vata inflammation.</p>
-              </div>
-
-              <div style={{ border: '1px solid #eae3d9', borderRadius: '12px', padding: '18px', background: '#faf7f2' }}>
-                <h4 style={{ fontSize: '1.05rem', color: 'var(--color-maroon-primary)', margin: '0 0 6px 0', fontFamily: 'var(--font-serif)' }}>
-                  Mahanarayan Taila (100ml)
-                </h4>
-                <p style={{ fontSize: '0.88rem', margin: '0 0 6px 0' }}><strong>Dosage:</strong> Gentle External Application at Night</p>
-                <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', margin: 0 }}>🌱 Nourishes lumbar vertebrae & relieves muscle spasm.</p>
-              </div>
-            </div>
           </div>
         </div>
       )}

@@ -1,5 +1,9 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+
+// Resilient in-memory user registry for fallback/offline mode
+const fallbackUsers = new Map();
 
 // Helper function to sign JWT token
 const generateToken = (user) => {
@@ -33,39 +37,85 @@ exports.registerUser = async (req, res) => {
       });
     }
 
-    let user;
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanPhone = (phone || '').trim();
+
+    let user = null;
+
+    // 1. Attempt to register user in MongoDB Atlas
     try {
-      const existingUser = await User.findOne({ email: email.toLowerCase() });
+      const existingUser = await User.findOne({
+        $or: [
+          { email: cleanEmail },
+          ...(cleanPhone ? [{ phone: cleanPhone }] : [])
+        ]
+      });
+
       if (existingUser) {
         return res.status(400).json({
           success: false,
-          message: 'An account with this email address already exists.'
+          message: 'An account with this email address or phone number already exists.'
         });
       }
 
       user = await User.create({
-        name,
-        email: email.toLowerCase(),
-        phone: phone || '9015472705',
+        name: name.trim(),
+        email: cleanEmail,
+        phone: cleanPhone || '98160 12345',
         password,
         role: 'patient',
         preferredBranch: preferredBranch || 'Kangra Centre',
         dosha: dosha || 'Vata-Pitta',
         primaryCondition: primaryCondition || 'General Ayurvedic Consultation'
       });
+
+      console.log(`✅ User successfully saved in MongoDB Atlas: ${user.email} (${user._id})`);
     } catch (dbErr) {
-      // In-memory fallback if MongoDB connection is pending
+      // Handle Mongoose validation errors directly (e.g. password too short, duplicate email)
+      if (dbErr.name === 'ValidationError') {
+        const messages = Object.values(dbErr.errors).map(val => val.message);
+        return res.status(400).json({
+          success: false,
+          message: messages.join('. ')
+        });
+      }
+
+      if (dbErr.code === 11000) {
+        return res.status(400).json({
+          success: false,
+          message: 'An account with this email address already exists.'
+        });
+      }
+
+      console.warn('⚠️ Database Notice during registration, saving to resilient fallback registry:', dbErr.message);
+    }
+
+    // 2. Fallback to resilient in-memory store if DB was offline/unreachable
+    if (!user) {
+      if (fallbackUsers.has(cleanEmail)) {
+        return res.status(400).json({
+          success: false,
+          message: 'An account with this email address already exists.'
+        });
+      }
+
+      const passwordHash = await bcrypt.hash(password, 10);
       user = {
         _id: 'usr_' + Date.now(),
-        name,
-        email: email.toLowerCase(),
-        phone: phone || '98160 12345',
+        name: name.trim(),
+        email: cleanEmail,
+        phone: cleanPhone || '98160 12345',
+        passwordHash,
         role: 'patient',
         patientId: 'RAY-2026-' + Math.floor(100 + Math.random() * 900),
         preferredBranch: preferredBranch || 'Kangra Centre',
         dosha: dosha || 'Vata-Pitta',
         primaryCondition: primaryCondition || 'General Ayurvedic Consultation'
       };
+
+      fallbackUsers.set(cleanEmail, user);
+      if (cleanPhone) fallbackUsers.set(cleanPhone, user);
+      console.log(`ℹ️ User stored in resilient fallback registry: ${cleanEmail}`);
     }
 
     const token = generateToken(user);
@@ -90,7 +140,7 @@ exports.registerUser = async (req, res) => {
     console.error('Registration Error:', error);
     return res.status(500).json({
       success: false,
-      message: 'Server error during registration. ' + error.message
+      message: 'Server error during registration: ' + error.message
     });
   }
 };
@@ -111,7 +161,7 @@ exports.loginUser = async (req, res) => {
 
     const inputLower = emailOrPhone.toLowerCase().trim();
 
-    // Check if logging in as Admin
+    // Special check for Admin Login
     if (inputLower === 'admin' || inputLower.includes('admin@ranjanayurveda.com')) {
       const adminUser = {
         _id: 'admin_001',
@@ -132,29 +182,35 @@ exports.loginUser = async (req, res) => {
       });
     }
 
-    let user;
+    let user = null;
+    let isMatch = false;
+
+    // 1. Try finding user in MongoDB Atlas
     try {
       user = await User.findOne({
         $or: [{ email: inputLower }, { phone: inputLower }]
       }).select('+password');
 
       if (user) {
-        const isMatch = await user.comparePassword(password);
-        if (!isMatch) {
-          return res.status(401).json({
-            success: false,
-            message: 'Invalid email/phone or password credentials.'
-          });
-        }
+        isMatch = await user.comparePassword(password);
       }
     } catch (dbErr) {
-      // Resilient fallback for demo login
+      console.warn('⚠️ Database Notice during login, searching fallback store:', dbErr.message);
     }
 
-    if (!user) {
+    // 2. If not found in DB or DB connection unavailable, check fallback store
+    if (!user && fallbackUsers.has(inputLower)) {
+      const fallbackUser = fallbackUsers.get(inputLower);
+      isMatch = await bcrypt.compare(password, fallbackUser.passwordHash);
+      if (isMatch) {
+        user = fallbackUser;
+      }
+    }
+
+    if (!user || !isMatch) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email/phone or password. Please register if you don\'t have an account.'
+        message: 'Invalid email/phone or password. Please check your credentials or register.'
       });
     }
 
@@ -165,7 +221,7 @@ exports.loginUser = async (req, res) => {
       message: 'Login successful!',
       token,
       user: {
-        id: user._id,
+        id: user._id || user.id,
         name: user.name,
         email: user.email,
         phone: user.phone,
@@ -180,7 +236,7 @@ exports.loginUser = async (req, res) => {
     console.error('Login Error:', error);
     return res.status(500).json({
       success: false,
-      message: 'Server error during login. ' + error.message
+      message: 'Server error during login: ' + error.message
     });
   }
 };

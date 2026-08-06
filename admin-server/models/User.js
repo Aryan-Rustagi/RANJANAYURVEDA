@@ -13,15 +13,14 @@ const userSchema = new mongoose.Schema({
   primaryCondition: { type: String, default: 'General Consultation' }
 }, { timestamps: true });
 
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
+userSchema.pre('save', async function() {
+  if (!this.isModified('password')) return;
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 
   if (!this.patientId) {
     this.patientId = 'RAY-' + new Date().getFullYear() + '-' + Math.floor(100 + Math.random() * 900);
   }
-  next();
 });
 
 userSchema.methods.comparePassword = async function(candidatePassword) {

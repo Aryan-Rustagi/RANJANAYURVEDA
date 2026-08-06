@@ -46,6 +46,29 @@ exports.deleteAppointment = async (req, res) => {
   }
 };
 
+// Helper: Convert time string like "10:00 AM" or "02:30 PM" to minutes from midnight
+const parseTimeToMinutes = (timeStr) => {
+  if (!timeStr) return null;
+  const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return null;
+  let hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const period = match[3].toUpperCase();
+
+  if (period === 'PM' && hours < 12) hours += 12;
+  if (period === 'AM' && hours === 12) hours = 0;
+
+  return hours * 60 + minutes;
+};
+
+// Helper: Normalize branch name for comparison
+const getBranchKey = (b) => {
+  if (!b) return '';
+  if (b.toLowerCase().includes('kangra')) return 'kangra';
+  if (b.toLowerCase().includes('dharamshala')) return 'dharamshala';
+  return b.toLowerCase().trim();
+};
+
 // POST /api/admin/appointments — Add walk-in appointment
 exports.createWalkInAppointment = async (req, res) => {
   try {
@@ -55,19 +78,35 @@ exports.createWalkInAppointment = async (req, res) => {
     const targetDate = appointmentDate || new Date().toLocaleDateString('en-IN');
     const targetSlot = timeSlot || '10:00 AM';
 
-    // Double-Booking Check
-    const existingBooking = await Appointment.findOne({
-      branch: targetBranch,
+    // Double-Booking & 30-Minute Buffer Check
+    const targetBranchKey = getBranchKey(targetBranch);
+    const existingBookings = await Appointment.find({
       appointmentDate: targetDate,
-      timeSlot: targetSlot,
       status: { $ne: 'Cancelled' }
     });
 
-    if (existingBooking) {
-      return res.status(400).json({
-        success: false,
-        message: `The ${targetSlot} slot at ${targetBranch} on ${targetDate} is already booked.`
+    const targetMinutes = parseTimeToMinutes(targetSlot);
+
+    if (targetMinutes !== null) {
+      const conflict = existingBookings.find(appt => {
+        if (getBranchKey(appt.branch) !== targetBranchKey) return false;
+        const apptMinutes = parseTimeToMinutes(appt.timeSlot);
+        if (apptMinutes === null) return false;
+        return Math.abs(targetMinutes - apptMinutes) <= 30;
       });
+
+      if (conflict) {
+        const conflictMinutes = parseTimeToMinutes(conflict.timeSlot);
+        const timeDiff = Math.abs(targetMinutes - conflictMinutes);
+        const reasonMessage = timeDiff === 0
+          ? `The ${targetSlot} slot at ${targetBranch} on ${targetDate} is already booked.`
+          : `The ${targetSlot} slot at ${targetBranch} on ${targetDate} is unavailable because another appointment is booked at ${conflict.timeSlot} (30-minute buffer required).`;
+
+        return res.status(400).json({
+          success: false,
+          message: reasonMessage
+        });
+      }
     }
 
     const appt = await Appointment.create({
