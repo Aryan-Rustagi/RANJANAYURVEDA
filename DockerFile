@@ -18,7 +18,7 @@ FROM node:22-alpine AS client-build
 WORKDIR /app
 
 COPY client/RANJANAYURVEDA/package*.json ./
-RUN npm install
+RUN npm install --include=dev
 
 COPY client/RANJANAYURVEDA/ .
 RUN npm run build
