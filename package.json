@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "npm --prefix client/RANJANAYURVEDA run dev",
-    "build": "npm --prefix client/RANJANAYURVEDA run build",
+    "build": "npm --prefix client/RANJANAYURVEDA install && npm --prefix client/RANJANAYURVEDA run build",
     "server": "npm --prefix server start"
   }
 }
