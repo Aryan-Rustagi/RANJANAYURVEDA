@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Calendar, CheckCircle2, Clock, XCircle, MapPin, RefreshCw, TrendingUp, Phone, Mail, Heart } from 'lucide-react';
-import { fetchDashboardStats, fetchAllAppointments, fetchAllPatients } from '../services/adminApi';
+import { Users, Calendar, CheckCircle2, Clock, XCircle, MapPin, RefreshCw, TrendingUp, Phone, Mail, Heart, Check, X } from 'lucide-react';
+import { fetchDashboardStats, fetchAllAppointments, fetchAllPatients, updateAppointmentStatus } from '../services/adminApi';
 
-export default function DashboardOverview() {
+export default function DashboardOverview({ onNavigate }) {
   const [stats, setStats] = useState(null);
   const [recentAppts, setRecentAppts] = useState([]);
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [notification, setNotification] = useState(null);
+
+  const showToast = (msg) => {
+    setNotification(msg);
+    setTimeout(() => setNotification(null), 3000);
+  };
 
   const loadData = async () => {
     try {
@@ -16,7 +22,7 @@ export default function DashboardOverview() {
         fetchAllPatients()
       ]);
       if (statsData.stats) setStats(statsData.stats);
-      if (apptsData.appointments) setRecentAppts(apptsData.appointments.slice(0, 6));
+      if (apptsData.appointments) setRecentAppts(apptsData.appointments.slice(0, 8));
       if (patientsData.patients) setPatients(patientsData.patients.slice(0, 6));
     } catch (err) {
       console.warn('Dashboard load error:', err.message);
@@ -31,12 +37,35 @@ export default function DashboardOverview() {
     return () => clearInterval(interval);
   }, []);
 
+  const handleQuickStatusChange = async (id, status, patientName = '') => {
+    setRecentAppts(prev => prev.map(a => a._id === id ? { ...a, status } : a));
+    try {
+      await updateAppointmentStatus(id, status);
+      if (status === 'Confirmed') {
+        showToast(`✅ Appointment for ${patientName || 'patient'} confirmed!`);
+      }
+      loadData();
+    } catch (err) {
+      alert('Action failed: ' + err.message);
+      loadData();
+    }
+  };
+
   const statusBadge = (status) => {
-    const cls = status === 'Confirmed' ? 'badge-confirmed'
-      : status === 'Completed' ? 'badge-completed'
-      : status === 'Pending' ? 'badge-pending'
-      : 'badge-cancelled';
-    return <span className={`badge ${cls}`}>{status}</span>;
+    if (status === 'Confirmed') {
+      return <span className="badge badge-confirmed"><Check size={11} /> Confirmed</span>;
+    }
+    if (status === 'Pending') {
+      return (
+        <span className="badge badge-pending">
+          <span className="pulse-yellow"></span> Pending Approval
+        </span>
+      );
+    }
+    if (status === 'Completed') {
+      return <span className="badge badge-completed"><CheckCircle2 size={11} /> Completed</span>;
+    }
+    return <span className="badge badge-cancelled"><X size={11} /> Cancelled</span>;
   };
 
   if (loading) {
@@ -68,6 +97,18 @@ export default function DashboardOverview() {
         </div>
       </div>
 
+      {/* Floating Toast Notification */}
+      {notification && (
+        <div style={{
+          position: 'fixed', bottom: '24px', right: '24px', zIndex: 1100,
+          background: '#2b2521', color: '#ffffff', padding: '12px 20px',
+          borderRadius: 'var(--radius-md)', boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+          fontSize: '0.9rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '10px'
+        }}>
+          {notification}
+        </div>
+      )}
+
       {/* KPI Stats Cards */}
       <div className="stats-grid">
         <div className="card stat-card">
@@ -94,11 +135,16 @@ export default function DashboardOverview() {
           </div>
         </div>
 
-        <div className="card stat-card">
-          <div className="stat-icon" style={{ background: '#fef7e0', color: '#b06000' }}><Clock size={22} /></div>
+        <div className="card stat-card" style={s.pending > 0 ? { borderColor: '#f9ab00', background: '#fffdf5' } : {}}>
+          <div className="stat-icon" style={{ background: '#fef7e0', color: '#b06000' }}>
+            <Clock size={22} />
+          </div>
           <div>
-            <div className="stat-value">{s.pending}</div>
-            <div className="stat-label">Pending</div>
+            <div className="stat-value" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {s.pending}
+              {s.pending > 0 && <span className="pulse-yellow"></span>}
+            </div>
+            <div className="stat-label">Pending Approval</div>
           </div>
         </div>
 
@@ -211,18 +257,19 @@ export default function DashboardOverview() {
                 <th>Branch</th>
                 <th>Date & Slot</th>
                 <th>Status</th>
+                <th style={{ textAlign: 'right' }}>Action</th>
               </tr>
             </thead>
             <tbody>
               {recentAppts.length === 0 ? (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '24px' }}>
+                  <td colSpan="7" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '24px' }}>
                     No appointments in queue yet.
                   </td>
                 </tr>
               ) : (
                 recentAppts.map((appt, idx) => (
-                  <tr key={appt._id || idx}>
+                  <tr key={appt._id || idx} className={appt.status === 'Pending' ? 'row-pending' : ''}>
                     <td style={{ fontWeight: '700', color: 'var(--color-maroon-primary)' }}>{appt.patientName}</td>
                     <td>
                       <a href={`tel:${(appt.patientPhone || '').replace(/\s+/g, '')}`} style={{ color: 'var(--color-maroon-primary)', fontWeight: '600', textDecoration: 'underline' }}>
@@ -232,9 +279,24 @@ export default function DashboardOverview() {
                     <td>{appt.treatment}</td>
                     <td><span className="badge badge-branch">{appt.branch}</span></td>
                     <td style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>
-                      {appt.appointmentDate} · {appt.timeSlot}
+                      <strong>{appt.appointmentDate}</strong> · {appt.timeSlot}
                     </td>
                     <td>{statusBadge(appt.status)}</td>
+                    <td style={{ textAlign: 'right' }}>
+                      {appt.status === 'Pending' ? (
+                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                          <button
+                            className="btn btn-approve btn-sm"
+                            onClick={() => handleQuickStatusChange(appt._id, 'Confirmed', appt.patientName)}
+                            title="Allow & Confirm Appointment"
+                          >
+                            <Check size={13} /> Allow & Confirm
+                          </button>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>—</span>
+                      )}
+                    </td>
                   </tr>
                 ))
               )}

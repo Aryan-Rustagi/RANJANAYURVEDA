@@ -124,7 +124,7 @@ exports.createAppointment = async (req, res) => {
       doctorName: targetBranch && targetBranch.includes('Dharamshala') ? 'Dr. Ananya Katoch' : 'Dr. Ranjan Sharma',
       appointmentDate: targetDate,
       timeSlot: targetSlot,
-      status: 'Confirmed',
+      status: 'Pending',
       notes: notes || ''
     };
 
@@ -137,7 +137,7 @@ exports.createAppointment = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Appointment booked successfully!',
+      message: 'Appointment requested successfully! Your booking is pending confirmation by the clinic admin.',
       appointment: appt
     });
   } catch (error) {

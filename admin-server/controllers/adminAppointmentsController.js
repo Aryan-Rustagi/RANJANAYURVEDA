@@ -117,7 +117,7 @@ exports.createWalkInAppointment = async (req, res) => {
       doctorName: targetBranch && targetBranch.includes('Dharamshala') ? 'Dr. Ananya Katoch' : 'Dr. Ranjan Sharma',
       appointmentDate: targetDate,
       timeSlot: targetSlot,
-      status: 'Confirmed',
+      status: req.body.status || 'Confirmed',
       notes: notes || ''
     });
 

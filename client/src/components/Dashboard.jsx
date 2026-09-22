@@ -115,14 +115,14 @@ export default function Dashboard({ setActiveTab, user, onLogout }) {
       });
 
       setBookingLoading(false);
-      setBookingSuccess(`Appointment successfully booked for ${bookingForm.appointmentDate} at ${bookingForm.branch}!`);
+      setBookingSuccess(`Appointment request submitted for ${bookingForm.appointmentDate} at ${bookingForm.branch}! Your booking is pending confirmation from clinic admin.`);
       loadMyAppointments();
 
       setTimeout(() => {
         setBookingSuccess(null);
         setShowBookModal(false);
         setActiveSubTab('appointments');
-      }, 1400);
+      }, 2000);
     } catch (err) {
       setBookingLoading(false);
       setBookingError(err.message || "Failed to book appointment.");
@@ -466,19 +466,84 @@ export default function Dashboard({ setActiveTab, user, onLogout }) {
               </div>
             ) : (
               myAppointments.map((appt, idx) => (
-                <div key={appt._id || appt.id || idx} className="glass-card" style={{ padding: '22px', borderLeft: '4px solid var(--color-maroon-primary)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                <div 
+                  key={appt._id || appt.id || idx} 
+                  className="glass-card" 
+                  style={{ 
+                    padding: '22px', 
+                    borderLeft: appt.status === 'Confirmed' ? '4px solid #137333' : appt.status === 'Pending' ? '4px solid #f9ab00' : '4px solid var(--color-maroon-primary)' 
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                     <span className="badge-gold" style={{ fontSize: '0.72rem' }}>{appt.type || 'OPD Consultation'}</span>
-                    <span style={{
-                      padding: '4px 10px',
-                      borderRadius: '12px',
-                      fontSize: '0.78rem',
-                      fontWeight: '700',
-                      background: appt.status === 'Confirmed' ? '#e6f4ea' : appt.status === 'Completed' ? '#e8f0fe' : '#fef7e0',
-                      color: appt.status === 'Confirmed' ? '#137333' : appt.status === 'Completed' ? '#1a73e8' : '#b06000'
-                    }}>
-                      {appt.status}
-                    </span>
+                    
+                    {appt.status === 'Confirmed' && (
+                      <span style={{
+                        padding: '4px 10px',
+                        borderRadius: '12px',
+                        fontSize: '0.78rem',
+                        fontWeight: '700',
+                        background: '#e6f4ea',
+                        color: '#137333',
+                        border: '1px solid #ceead6',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                      }}>
+                        <CheckCircle2 size={13} /> Confirmed by Admin
+                      </span>
+                    )}
+
+                    {appt.status === 'Pending' && (
+                      <span style={{
+                        padding: '4px 10px',
+                        borderRadius: '12px',
+                        fontSize: '0.78rem',
+                        fontWeight: '700',
+                        background: '#fef7e0',
+                        color: '#b06000',
+                        border: '1px solid #feefb3',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                      }}>
+                        <Clock size={13} /> Pending Confirmation
+                      </span>
+                    )}
+
+                    {appt.status === 'Completed' && (
+                      <span style={{
+                        padding: '4px 10px',
+                        borderRadius: '12px',
+                        fontSize: '0.78rem',
+                        fontWeight: '700',
+                        background: '#e8f0fe',
+                        color: '#1a73e8',
+                        border: '1px solid #d2e3fc',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                      }}>
+                        <CheckCircle2 size={13} /> Completed
+                      </span>
+                    )}
+
+                    {appt.status === 'Cancelled' && (
+                      <span style={{
+                        padding: '4px 10px',
+                        borderRadius: '12px',
+                        fontSize: '0.78rem',
+                        fontWeight: '700',
+                        background: '#fce8e6',
+                        color: '#c5221f',
+                        border: '1px solid #fad2cf',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                      }}>
+                        <X size={13} /> Cancelled
+                      </span>
+                    )}
                   </div>
 
                   <h3 style={{ fontSize: '1.15rem', color: 'var(--color-maroon-primary)', margin: '0 0 8px 0', fontFamily: 'var(--font-serif)' }}>
@@ -500,7 +565,21 @@ export default function Dashboard({ setActiveTab, user, onLogout }) {
                     </div>
                   </div>
 
-                  {appt.instructions && (
+                  {appt.status === 'Pending' && (
+                    <div style={{ padding: '10px 12px', background: '#fffcf2', borderRadius: '8px', border: '1px solid #feefb3', fontSize: '0.82rem', color: '#874900', display: 'flex', gap: '8px', marginBottom: '14px', alignItems: 'flex-start' }}>
+                      <Clock size={16} color="#b06000" style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <span><strong>Awaiting Admin Review:</strong> Your booking request is currently pending confirmation from our clinic administration. Once approved by the admin, your appointment will become Confirmed.</span>
+                    </div>
+                  )}
+
+                  {appt.status === 'Confirmed' && (
+                    <div style={{ padding: '10px 12px', background: '#f0f9f4', borderRadius: '8px', border: '1px solid #ceead6', fontSize: '0.82rem', color: '#137333', display: 'flex', gap: '8px', marginBottom: '14px', alignItems: 'flex-start' }}>
+                      <CheckCircle2 size={16} color="#137333" style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <span><strong>Appointment Confirmed:</strong> {appt.instructions || 'Please arrive 10 minutes prior to your scheduled consultation time.'}</span>
+                    </div>
+                  )}
+
+                  {appt.status !== 'Pending' && appt.status !== 'Confirmed' && appt.instructions && (
                     <div style={{ padding: '10px 12px', background: 'var(--color-bg-subtle)', borderRadius: '8px', border: '1px solid #eae3d9', fontSize: '0.82rem', color: 'var(--color-text-muted)', display: 'flex', gap: '8px', marginBottom: '14px' }}>
                       <AlertCircle size={16} color="var(--color-gold-accent)" style={{ flexShrink: 0, marginTop: '2px' }} />
                       <span><strong>Instructions:</strong> {appt.instructions}</span>

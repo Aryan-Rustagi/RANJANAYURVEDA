@@ -9,7 +9,7 @@ const appointmentSchema = new mongoose.Schema({
   doctorName: { type: String, default: 'Dr. Ranjan Sharma' },
   appointmentDate: { type: String, required: true },
   timeSlot: { type: String, default: '10:30 AM' },
-  status: { type: String, enum: ['Pending', 'Confirmed', 'Completed', 'Cancelled'], default: 'Confirmed' },
+  status: { type: String, enum: ['Pending', 'Confirmed', 'Completed', 'Cancelled'], default: 'Pending' },
   type: { type: String, enum: ['OPD Consultation', 'Panchakarma Therapy', 'Nadi Pariksha'], default: 'OPD Consultation' },
   instructions: { type: String, default: 'Please arrive 10 minutes prior to your scheduled consultation time.' },
   notes: { type: String, default: '' }
