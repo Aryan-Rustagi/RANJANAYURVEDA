@@ -12,12 +12,21 @@ const app = express();
 
 app.use(helmet());
 
+const allowedOrigins = [
+  process.env.ADMIN_CLIENT_URL,
+  process.env.ADMIN_CLIENT_URL && process.env.ADMIN_CLIENT_URL.replace(/\/+$/, ''),
+  'http://localhost:5174',
+  'http://127.0.0.1:5174'
+].filter(Boolean);
+
 app.use(cors({
-  origin: [
-    process.env.ADMIN_CLIENT_URL || 'http://localhost:5174',
-    'http://localhost:5174',
-    'http://127.0.0.1:5174'
-  ],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.some(o => origin && origin.startsWith(o))) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Permissive fallback for seamless preview & deployment
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']

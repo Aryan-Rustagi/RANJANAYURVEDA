@@ -18,10 +18,12 @@ app.use(helmet());
 
 // Security Middleware 2: CORS Cross-Origin protection
 const allowedOrigins = [
-  process.env.CLIENT_URL || 'http://localhost:5173',
+  process.env.CLIENT_URL,
+  process.env.CLIENT_URL && process.env.CLIENT_URL.replace(/\/+$/, ''),
+  'http://localhost:5173',
   'http://localhost:3000',
   'http://127.0.0.1:5173'
-];
+].filter(Boolean);
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
