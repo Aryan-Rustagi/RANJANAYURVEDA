@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:5001/api/admin';
+const API_BASE = (import.meta.env.VITE_ADMIN_API_URL || 'http://localhost:5001/api/admin').replace(/\/+$/, '');
 
 export const getAdminToken = () => localStorage.getItem('admin_jwt_token');
 

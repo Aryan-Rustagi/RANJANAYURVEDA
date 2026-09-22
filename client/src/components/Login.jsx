@@ -151,7 +151,7 @@ export default function Login({ setActiveTab, setUser }) {
         {/* Dedicated Admin Portal Direct Link */}
         <div style={{ textAlign: 'center', marginTop: '16px', paddingTop: '14px', borderTop: '1px solid #eae3d9' }}>
           <a 
-            href="http://localhost:5174" 
+            href={import.meta.env.VITE_ADMIN_CLIENT_URL || "http://localhost:5174"} 
             target="_blank"
             rel="noopener noreferrer"
             style={{ 
