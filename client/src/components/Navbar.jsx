@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { Phone, Info, Home as HomeIcon, LogIn, UserPlus, Menu, X } from 'lucide-react';
+import { Phone, Info, Home as HomeIcon, LogIn, UserPlus, Menu, X, LayoutDashboard, LogOut } from 'lucide-react';
 
-export default function Navbar({ activeTab, setActiveTab }) {
+export default function Navbar({ activeTab, setActiveTab, user, onLogout }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleNavClick = (tab) => {
-    setActiveTab(tab);
+    if (tab === 'dashboard' && !user) {
+      setActiveTab('login');
+    } else {
+      setActiveTab(tab);
+    }
     setMobileMenuOpen(false);
   };
 
@@ -57,20 +61,43 @@ export default function Navbar({ activeTab, setActiveTab }) {
             </li>
             <li>
               <button 
-                className={`nav-item-btn ${activeTab === 'login' ? 'active' : ''}`}
-                onClick={() => handleNavClick('login')}
+                className={`nav-item-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
+                onClick={() => handleNavClick('dashboard')}
               >
-                <LogIn size={16} /> Login
+                <LayoutDashboard size={16} /> Dashboard
               </button>
             </li>
-            <li>
-              <button 
-                className={`nav-item-btn ${activeTab === 'signup' ? 'active' : ''}`}
-                onClick={() => handleNavClick('signup')}
-              >
-                <UserPlus size={16} /> Sign Up
-              </button>
-            </li>
+
+            {!user ? (
+              <>
+                <li>
+                  <button 
+                    className={`nav-item-btn ${activeTab === 'login' ? 'active' : ''}`}
+                    onClick={() => handleNavClick('login')}
+                  >
+                    <LogIn size={16} /> Login
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    className={`nav-item-btn ${activeTab === 'signup' ? 'active' : ''}`}
+                    onClick={() => handleNavClick('signup')}
+                  >
+                    <UserPlus size={16} /> Sign Up
+                  </button>
+                </li>
+              </>
+            ) : (
+              <li>
+                <button 
+                  className="nav-item-btn"
+                  onClick={onLogout}
+                  style={{ color: '#c5221f' }}
+                >
+                  <LogOut size={16} /> Logout ({user.name.split(' ')[0]})
+                </button>
+              </li>
+            )}
           </ul>
 
           {/* Mobile phone call button */}

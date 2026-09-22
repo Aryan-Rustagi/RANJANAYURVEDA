@@ -3,8 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "npm --prefix client/RANJANAYURVEDA run dev",
-    "build": "npm --prefix client/RANJANAYURVEDA install && npm --prefix client/RANJANAYURVEDA run build",
-    "server": "npm --prefix server start"
+    "start": "concurrently -k -n \"CUSTOMER-API,CUSTOMER-UI,ADMIN-API,ADMIN-UI\" -c \"magenta,yellow,cyan,green\" \"npm run start:server\" \"npm run start:client\" \"npm run start:admin-server\" \"npm run start:admin-client\"",
+    "dev": "npm start",
+    "start:server": "npm --prefix server start",
+    "start:client": "npm --prefix client run dev",
+    "start:admin-server": "npm --prefix admin-server start",
+    "start:admin-client": "npm --prefix admin-client run dev",
+    "build": "npm --prefix client run build && npm --prefix admin-client run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }

@@ -33,11 +33,6 @@ export default function Footer({ setActiveTab }) {
             <li><button onClick={() => setActiveTab('about')}>About Us & Specializations</button></li>
             <li><button onClick={() => setActiveTab('login')}>Patient Portal Login</button></li>
             <li><button onClick={() => setActiveTab('signup')}>Register New Patient</button></li>
-            <li>
-              <button onClick={() => setActiveTab('admin')} style={{ color: 'var(--color-gold-light)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <Shield size={13} /> Admin Portal
-              </button>
-            </li>
           </ul>
         </div>
 

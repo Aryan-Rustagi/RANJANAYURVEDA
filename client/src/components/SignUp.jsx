@@ -1,28 +1,54 @@
 import React, { useState } from 'react';
-import { User, Phone, Mail, Lock, MapPin, UserPlus, CheckCircle2 } from 'lucide-react';
+import { User, Phone, Mail, Lock, MapPin, UserPlus, CheckCircle2, AlertCircle } from 'lucide-react';
+import { registerApi } from '../services/api';
 
-export default function SignUp({ setActiveTab }) {
+export default function SignUp({ setActiveTab, setUser }) {
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
     email: '',
-    branch: 'Kangra',
+    branch: 'Kangra Centre',
     password: '',
     confirmPassword: ''
   });
+  const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
+      setErrorMessage("Passwords do not match!");
       return;
     }
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setActiveTab('login');
-    }, 2500);
+
+    setLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const data = await registerApi({
+        name: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        preferredBranch: formData.branch
+      });
+
+      setLoading(false);
+      setSubmitted(true);
+      if (setUser && data.user) {
+        setUser(data.user);
+        localStorage.setItem('ayurveda_user', JSON.stringify(data.user));
+      }
+
+      setTimeout(() => {
+        setSubmitted(false);
+        setActiveTab('dashboard');
+      }, 1200);
+    } catch (err) {
+      setLoading(false);
+      setErrorMessage(err.message || "Registration failed. Please try again.");
+    }
   };
 
   return (
@@ -40,6 +66,26 @@ export default function SignUp({ setActiveTab }) {
         </div>
 
         {/* Feedback message */}
+        {errorMessage && (
+          <div style={{
+            background: '#fce8e6',
+            border: '1px solid #fad2cf',
+            padding: '12px',
+            borderRadius: 'var(--radius-md)',
+            color: '#c5221f',
+            fontSize: '0.88rem',
+            textAlign: 'center',
+            marginBottom: '18px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}>
+            <AlertCircle size={16} />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
         {submitted && (
           <div style={{
             background: 'var(--color-gold-subtle)',

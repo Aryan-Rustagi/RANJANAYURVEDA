@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Phone, MapPin, Sparkles, ShieldCheck, Stethoscope, Leaf, CheckCircle2, ArrowRight } from 'lucide-react';
 
 export default function Home({ setActiveTab }) {
@@ -12,8 +12,8 @@ export default function Home({ setActiveTab }) {
   ];
 
   return (
-    <div className="animate-fade-in">
-      {/* Hero Showcase Banner */}
+    <div className="animate-fade-in" style={{ paddingBottom: '40px' }}>
+      {/* Hero Showcase Card */}
       <div className="poster-hero-card">
         <div className="hero-grid">
           {/* Left Column */}
@@ -34,7 +34,7 @@ export default function Home({ setActiveTab }) {
             </p>
 
             <div className="hero-cta-row">
-              <button className="btn-gold" onClick={() => setActiveTab('signup')}>
+              <button className="btn-gold" onClick={() => setActiveTab('dashboard')}>
                 <ShieldCheck size={18} /> Book Appointment
               </button>
               <a href="tel:9015472705" className="btn-maroon-outline">
@@ -43,11 +43,9 @@ export default function Home({ setActiveTab }) {
             </div>
           </div>
 
-          {/* Right Column */}
+          {/* Right Column Visual Branding Card */}
           <div className="poster-visual-box">
-            <div className="poster-logo-large">
-              R
-            </div>
+            <div className="poster-logo-large">R</div>
             <h2 style={{ fontFamily: 'var(--font-serif)', color: 'var(--color-maroon-primary)', fontSize: '1.25rem' }}>
               RANJAN'S AYURVEDA
             </h2>
@@ -65,13 +63,12 @@ export default function Home({ setActiveTab }) {
               <span className="therapy-pill">AUTHENTIC CARE</span>
               <span className="therapy-pill">SAFE THERAPIES</span>
               <span className="therapy-pill">EXPERT DOCTORS</span>
-              <span className="therapy-pill">HOLISTIC WELLNESS</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Treatments Display Grid */}
+      {/* Specialized Treatments Section */}
       <div className="section-header">
         <h2 className="section-title">SPECIALIZED <span>TREATMENTS</span></h2>
         <p className="section-subtitle">
@@ -121,8 +118,8 @@ export default function Home({ setActiveTab }) {
         </div>
       </div>
 
-      {/* Appointment Call Banner */}
-      <div className="glass-card" style={{ padding: '24px', textAlign: 'center', background: '#faf7f2', marginBottom: '40px' }}>
+      {/* Need An Appointment Call Banner */}
+      <div className="glass-card" style={{ padding: '24px', textAlign: 'center', background: '#faf7f2', marginBottom: '40px', border: '1px solid #eae3d9' }}>
         <h3 style={{ fontFamily: 'var(--font-serif)', color: 'var(--color-maroon-primary)', fontSize: '1.3rem', marginBottom: '6px' }}>
           NEED AN APPOINTMENT?
         </h3>
@@ -132,7 +129,7 @@ export default function Home({ setActiveTab }) {
           </a>
         </p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          <a href="tel:9015472705" className="btn-gold">
+          <a href="tel:9015472705" className="btn-gold" style={{ textDecoration: 'none' }}>
             <Phone size={16} /> Call Now
           </a>
           <button className="btn-maroon-outline" onClick={() => setActiveTab('about')}>
@@ -141,7 +138,7 @@ export default function Home({ setActiveTab }) {
         </div>
       </div>
 
-      {/* Branches Section */}
+      {/* Centre Branches Section */}
       <div className="section-header">
         <h2 className="section-title">OUR <span>CENTRE BRANCHES</span></h2>
         <p className="section-subtitle">

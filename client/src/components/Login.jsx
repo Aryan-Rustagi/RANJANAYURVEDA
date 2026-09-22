@@ -1,27 +1,43 @@
 import React, { useState } from 'react';
-import { Mail, Lock, LogIn, CheckCircle2, Shield } from 'lucide-react';
+import { Mail, Lock, LogIn, CheckCircle2, Shield, AlertCircle } from 'lucide-react';
+import { loginApi } from '../services/api';
 
-export default function Login({ setActiveTab }) {
+export default function Login({ setActiveTab, setUser }) {
   const [formData, setFormData] = useState({
     emailOrPhone: '',
     password: '',
     rememberMe: false
   });
+  const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
+    setLoading(true);
+    setErrorMessage(null);
 
-    // If logging in with admin credentials or entering admin, switch to admin view
-    const isAdmin = formData.emailOrPhone.toLowerCase().includes('admin');
+    try {
+      const data = await loginApi({
+        emailOrPhone: formData.emailOrPhone,
+        password: formData.password
+      });
 
-    setTimeout(() => {
-      setSubmitted(false);
-      if (isAdmin) {
-        setActiveTab('admin');
+      setLoading(false);
+      setSubmitted(true);
+      if (setUser && data.user) {
+        setUser(data.user);
+        localStorage.setItem('ayurveda_user', JSON.stringify(data.user));
       }
-    }, 1500);
+
+      setTimeout(() => {
+        setSubmitted(false);
+        setActiveTab('dashboard');
+      }, 1000);
+    } catch (err) {
+      setLoading(false);
+      setErrorMessage(err.message || 'Login failed. Please check your credentials.');
+    }
   };
 
   return (
@@ -32,13 +48,33 @@ export default function Login({ setActiveTab }) {
           <div className="logo-icon-wrap" style={{ margin: '0 auto 14px auto', width: '48px', height: '48px', borderRadius: '10px' }}>
             R
           </div>
-          <h2 className="auth-title">PORTAL <span>LOGIN</span></h2>
+          <h2 className="auth-title">PATIENT <span>LOGIN</span></h2>
           <p className="auth-subtitle">
-            Patient Portal & Clinical Administration
+            Customer & Patient Services Portal
           </p>
         </div>
 
         {/* Feedback message */}
+        {errorMessage && (
+          <div style={{
+            background: '#fce8e6',
+            border: '1px solid #fad2cf',
+            padding: '12px',
+            borderRadius: 'var(--radius-md)',
+            color: '#c5221f',
+            fontSize: '0.88rem',
+            textAlign: 'center',
+            marginBottom: '18px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}>
+            <AlertCircle size={16} />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
         {submitted && (
           <div style={{
             background: 'var(--color-gold-subtle)',
@@ -63,12 +99,12 @@ export default function Login({ setActiveTab }) {
           {/* Email or Phone */}
           <div className="form-group">
             <label className="form-label">
-              <Mail size={15} /> Email / Username / Phone
+              <Mail size={15} /> Email / Phone
             </label>
             <input 
               type="text" 
               className="form-input" 
-              placeholder="e.g. 9015472705 or admin"
+              placeholder="e.g. 9015472705 or rajesh@example.com"
               value={formData.emailOrPhone}
               onChange={(e) => setFormData({...formData, emailOrPhone: e.target.value})}
               required
@@ -112,24 +148,23 @@ export default function Login({ setActiveTab }) {
           </button>
         </form>
 
-        {/* Quick Admin Demo Link */}
+        {/* Dedicated Admin Portal Direct Link */}
         <div style={{ textAlign: 'center', marginTop: '16px', paddingTop: '14px', borderTop: '1px solid #eae3d9' }}>
-          <button 
-            type="button"
-            onClick={() => setActiveTab('admin')} 
+          <a 
+            href="http://localhost:5174" 
+            target="_blank"
+            rel="noopener noreferrer"
             style={{ 
-              background: 'none', 
-              border: 'none', 
               color: 'var(--color-text-muted)', 
               fontSize: '0.82rem', 
-              cursor: 'pointer',
+              textDecoration: 'none',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '4px'
             }}
           >
-            <Shield size={13} color="var(--color-maroon-primary)" /> Switch directly to Admin Portal
-          </button>
+            <Shield size={13} color="var(--color-maroon-primary)" /> Open Admin Portal Application (Port 5174) ↗
+          </a>
         </div>
 
         {/* Footer Toggle */}
