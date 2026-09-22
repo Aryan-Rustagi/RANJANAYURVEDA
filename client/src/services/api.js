@@ -1,4 +1,4 @@
-const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/+$/, '');
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://ranjan-customer-api.onrender.com/api').replace(/\/+$/, '');
 
 // Helper to get JWT token from localStorage
 export const getAuthToken = () => localStorage.getItem('ayurveda_jwt_token');
