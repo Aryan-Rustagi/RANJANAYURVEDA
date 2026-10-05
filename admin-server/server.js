@@ -56,6 +56,7 @@ app.get('/', (req, res) => {
 app.use('/api/admin/auth', authLimiter, require('./routes/adminAuthRoutes'));
 app.use('/api/admin/patients', require('./routes/adminPatientsRoutes'));
 app.use('/api/admin/appointments', require('./routes/adminAppointmentsRoutes'));
+app.get('/api/admin/stats', require('./middleware/adminAuth').adminProtect, require('./controllers/adminAppointmentsController').getDashboardStats);
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: `Admin API endpoint '${req.originalUrl}' not found.` });
